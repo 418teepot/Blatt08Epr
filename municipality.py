@@ -1,5 +1,5 @@
 from citizens import Citizens
-from building import Building, BasicBuilding
+from building import Building, BasicBuilding, ElectiveBuilding
 
 class Municipality:
     def __init__(self):
@@ -9,6 +9,12 @@ class Municipality:
         self.balance = 100_000
         self.tax_rate = 0.1
         self.month = 0
+
+    def withdraw(self, amount):
+        """Withdraws the specified amount from the municipality's balance."""
+        if amount <= self.balance:
+            self.balance -= amount
+            return amount
     
     def simulate_one_round(self):
         """1. Taxes - (Incomes)
