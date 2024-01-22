@@ -22,6 +22,7 @@ class CitizenSatisfaction:
                 satisfaction_penalties *= building.get_satisfaction_penalty()
         return (self.infrastructure + self.safety + self.health + self.entertainment) / 4 * (1 - satisfaction_penalties)
     
+    
     def calculate_infrastructure(self, buildings: list[Building], citizen: Citizens) -> int:
         pass
 

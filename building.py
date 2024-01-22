@@ -9,7 +9,7 @@ class Building(metaclass=ABCMeta):
         self.count = 0
 
     @abstractmethod
-    def get_expenses(self, balance) -> int:
+    def try_construct(self, balance) -> int:
           if self.construction_cost <= balance.get_balance():
              self.construction_cost = balance.withdraw(self.construction_cost) # 
              self.count += 1
@@ -30,7 +30,7 @@ class BasicBuilding(Building):
     def __init__(self, name, construction_cost, build_time, count, population_increment):
         super().__init__(name, construction_cost, build_time)
         self.population_increment = population_increment
-        self.weight = 0.2 # should we make it set and private?
+        self.pos_weight = 0.05 # should we make it set and private?
         self.weight_penalty = 0.05
         self.count = count
     
@@ -44,7 +44,9 @@ class BasicBuilding(Building):
         # Check if enough buildings are constructed proportional to the population
         target_number = citizen_count // self.population_increment
         if self.count < target_number:
-            super().get_expenses(balance)
+            super().try_construct(balance)
+        else:
+
 
     def get_income(self, citizen_count) -> int:
         return super().get_income(citizen_count)
@@ -52,9 +54,9 @@ class BasicBuilding(Building):
     def calculate_weight(self, target_number):
         # Calculate the weight of the building on citizen satisfaction
         if self.count >= target_number:
-            return self.weight * self.count
+            return self.pos_weight * self.count
         else:
-            return max(0, self.weight - self.weight_penalty * (target_number - self.count))
+            return max(0, self.pos_weight - self.weight_penalty * (target_number - self.count))
         
 
 """class School(BasicBuilding):
@@ -74,7 +76,7 @@ class ElectiveBuilding(Building):
         self.weight = 0.1
 
     def build(self, balance):
-        super().get_expenses(balance)
+        super().try_construct(balance)
 
     def get_income(self, citizen_count) -> int:
         return super().get_income(citizen_count)
