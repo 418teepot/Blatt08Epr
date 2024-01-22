@@ -1,6 +1,22 @@
 from building import Building, BasicBuilding
 INCOME_PER_CITIZEN = 2500
 
+from dataclasses import dataclass
+
+@dataclass
+class SatisfactionFactors:
+    """Class for keeping track of the satisfaction Factors."""
+    infrastructure: float
+    safety: float
+    health: float
+    etertainment: float 
+
+    def __mul__(self, other):
+        SatisfactionFacotrs(self.infrastructure * other.infrastructure, self.safety * other.safety, self.health * other.health, self.entertainment * other.entertainment)
+    
+    def average(self):
+        return (self.infrastructure + self.safety + self.health + self.entertainment) / 4
+
 class Citizens:
     def __init__(self, initial_count):
         self.count = initial_count
