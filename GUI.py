@@ -150,7 +150,6 @@ class MunicipalitySimulatorGUI(tk.Tk):
 
 
 if __name__ == "__main__":
-    # Create a sample municipality for testing
     municipality = Municipality()
 
     # Create and run the GUI
