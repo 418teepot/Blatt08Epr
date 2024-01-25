@@ -20,12 +20,14 @@ class Municipality:
            7. Abwandern / Hinzukommen / Gleichbleibt
         """
         # 1. Taxes & Income
+        print(f'Starting simulataion of round {self.month}')
+        self.debug_print_stats()
         self.balance += self.citizens.collect_taxes(self.tax_rate)
         for building in self.buildings:
             self.balance += building.get_income()
-        # 2. Random Events
-        # 3. Settings
-        # 4. Costs
-        for building in self.buildings:
             self.balance -= building.get_expenses()
-        # 5. Calculate Stats
+        self.debug_print_stats()
+    
+    def debug_print_stats(self):
+        print(f'Citizens: {self.citizens}')
+        print(f'Balance: {self.balance}')
