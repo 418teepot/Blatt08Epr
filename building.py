@@ -1,49 +1,51 @@
 from abc import ABCMeta, abstractmethod
-
-from citizens import SatisfactionFactors
+from satisfaction_factors import SatisfactionFactors
 
 class Building(metaclass=ABCMeta):
-    def __init__(self, name, construction_cost, build_time, count):
+    def __init__(self, name: str, initial_count: int):
         self.name = name
-        self.construction_cost = construction_cost 
-        self.build_time = build_time
-        self.count = 0
-
-    @abstractmethod
-    def try_construct(self, balance) -> int:
-          if self.construction_cost <= balance.get_balance():
-             self.construction_cost = balance.withdraw(self.construction_cost) # 
-             self.count += 1
-          else:
-             print(f"Insufficient balance to construct {self.name}.")
-
+        self.count = initial_count
     
     @abstractmethod
-    def get_income(self) -> int:
+    def get_income(self, citizen_count) -> int:
         pass
+
+    @abstractmethod
+    def get_expenses(self) -> int:
+        pass
+
+    def build(self):
+        self.count += 1
+
+    @staticmethod
+    @abstractmethod
+    def get_build_cost() -> int:
+        pass
+
+    @abstractmethod
+    def get_satisfaction_factor_influence(self) -> object:
+        pass
+
 
 ERR_MARGIN = 100
 
 class BasicBuilding(Building, metaclass=ABCMeta):
-    def __init__(self, name, per_population, penalty, count):
-        super().__init__(name)
+    def __init__(self, name: str, per_population: int, penalty: float, count: int, construction_cost: int, build_time: int):
+        super().__init__(name, count)
         self.per_population = per_population
         self.penalty = penalty
     
     def get_satisfaction_penalty(self, citizen_count) -> int:
         capacity = self.count * self.per_population
         if capacity + ERR_MARGIN < citizen_count:
-            return (citizen_count // capacity) * self.weight
             return (1 - self.penalty) ** (citizen_count // capacity)
         return 0
     
-    @abstractmethod
-    def update_satisfaction(self, factors: SatisfactionFactors) -> SatisfactionFactors:
-        pass
+    def get_satisfaction_factor_influence(self) -> object:
+        return SatisfactionFactors(1.0, 1.0, 1.0, 1.0)
 
-    @abstractmethod
-    def get_income(self) -> int:
-        pass
+    def get_income(self, citizen_count: int) -> int:
+        return 0
 
     @abstractmethod
     def get_expenses(self) -> int:
@@ -51,25 +53,27 @@ class BasicBuilding(Building, metaclass=ABCMeta):
 
 class School(BasicBuilding):
     def __init__(self, weight, count):
-        super().__init__("Schule", 5000, weight, count)
+        super().__init__("Schule", 5000, weight, count, 10000, 6)
     
     def get_expenses(self) -> int:
-        return 1000 * self.count
+        return 200 * self.count
     
-    def get_income(self) -> int:
-        return 0 * self.count
+    def get_income(self, citizen_count: int) -> int:
+        return 0
+    
+    @staticmethod
+    def get_build_cost() -> int:
+        return 2000
     
 
 class ElectiveBuilding(Building):
-    def __init__(self, name, construction_cost, build_time):
-        super().__init__(name, construction_cost, build_time)
+    def __init__(self, name):
+        super().__init__(name, 0)
         self.weight = 0.1
 
-    def build(self, balance):
-        super().try_construct(balance)
-
+    @abstractmethod
     def get_income(self, citizen_count) -> int:
-        return super().get_income(citizen_count)
+        return 0
     
     def calculate_weight(self):
         return self.count * self.weight

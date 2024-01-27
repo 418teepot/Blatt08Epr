@@ -1,39 +1,47 @@
+import random
 from citizens import Citizens
-from building import Building, BasicBuilding, ElectiveBuilding
+from event import Event
+from satisfaction_factors import SatisfactionFactors
 
 class Municipality:
     def __init__(self):
-        self.name = "Epic Fail City xD"
+        self.name = "Metropolis"
         self.citizens = Citizens(10000)
         self.buildings = []
         self.balance = 100_000
         self.tax_rate = 0.1
         self.month = 0
-
-    def withdraw(self, amount):
-        """Withdraws the specified amount from the municipality's balance."""
-        if amount <= self.balance:
-            self.balance -= amount
-            return amount
+        self.enable_immigration = True
     
     def simulate_one_round(self):
-        """1. Taxes - (Incomes)
-           2. Random Events (?)
-           3. Spieler einstellungen Vornehmen
-           4. Bezahlen der Kosten
-           5. Gebäude / Effekte Simulieren?
-           6. Stats -> Bürgerzufriedenheit
-           7. Abwandern / Hinzukommen / Gleichbleibt
-        """
-        # 1. Taxes & Income
-        print(f'Starting simulataion of round {self.month}')
-        self.debug_print_stats()
         self.balance += self.citizens.collect_taxes(self.tax_rate)
         for building in self.buildings:
             self.balance += building.get_income()
             self.balance -= building.get_expenses()
-        self.debug_print_stats()
+
+        satisfaction = self.citizens.get_total_satisfaction(self.tax_rate, self.buildings)
+        self.sim_migration(satisfaction)
     
+    def satisfaction(self) -> float:
+        return self.citizens.get_total_satisfaction(self.tax_rate, self.buildings)
+        
     def debug_print_stats(self):
         print(f'Citizens: {self.citizens}')
         print(f'Balance: {self.balance}')
+
+    def add_building(self, index: int):
+        self.balance -= self.buildings[index].get_build_cost()
+        self.buildings[index].build()
+    
+    def sim_migration(self, satisfaction: float):
+        rate = self.citizens.determine_migration(satisfaction)
+        if rate > 0:
+            if self.enable_immigration:
+                self.citizens += rate
+        else:
+            self.citizens += rate
+    
+    def get_events(self) -> object:
+        events = [Event("Earthquake", "Whoopsie", SatisfactionFactors(0.85, 0.85, 0.95, 1.0), -2500)]
+        if random.randint(0, 20) < 5:
+            return random.choice(events)

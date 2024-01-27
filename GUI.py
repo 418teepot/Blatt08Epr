@@ -7,23 +7,21 @@ GUI for the Municipality simulation
 
 __author__ = "6963879, Tverdohleb, "
 
-
 import tkinter as tk
 from tkinter import ttk
-from citizens import Citizens
-from building import Building, BasicBuilding, ElectiveBuilding
+from municipality import Municipality
 
 class MunicipalitySimulatorGUI(tk.Tk):
-    def __init__(self, municipality):
+    def __init__(self, our_city):
         super().__init__()
 
-        self.municipality = municipality
+        self.our_city = our_city
 
         self.title("Municipality Simulator")
         self.geometry("800x400")
         
         self.label = tk.Label(text="Welcome to XXXXX!", font=('Arial', 18))
-        self.abel.pack(padx=20, pady=20)
+        self.label.pack(padx=20, pady=20)
 
         # Left side: Display stats
         self.stats_frame = tk.Frame(self)
@@ -70,7 +68,7 @@ class MunicipalitySimulatorGUI(tk.Tk):
         self.building_label = tk.Label(self.progress_bar_frame, text="Select Building:")
         self.building_label.grid(row=2, column=0, sticky="w", padx=5, pady=5)
 
-        self.building_options = [building.name for building in self.municipality.buildings]
+        self.building_options = [building.name for building in self.our_city.buildings]
         self.selected_building = tk.StringVar()
         self.building_dropdown = ttk.Combobox(self.progress_bar_frame, textvariable=self.selected_building, values=self.building_options)
         self.building_dropdown.grid(row=2, column=1, padx=5, pady=5)
@@ -95,18 +93,18 @@ class MunicipalitySimulatorGUI(tk.Tk):
     def simulate_one_round(self):
         try:
             # Update municipality parameters from entry fields
-            self.municipality.immigration = int(self.immigration_entry.get())
-            self.municipality.emigration = int(self.emigration_entry.get())
-            self.municipality.tax_rate = float(self.tax_rate_entry.get())
+            self.our_city.immigration = int(self.immigration_entry.get())
+            self.our_city.emigration = int(self.emigration_entry.get())
+            self.our_city.tax_rate = float(self.tax_rate_entry.get())
 
             # Add selected buildings
             for index, checkbox in enumerate(self.building_checkboxes):
                 if checkbox.instate(['selected']):
-                    selected_building = self.municipality.buildings[index]
-                    self.municipality.buildings.append(selected_building)
+                    selected_building = self.our_city.buildings[index]
+                    self.our_city.buildings.append(selected_building)
 
             # Run one simulation round
-            self.municipality.simulate_one_round()
+            self.our_city.simulate_one_round()
 
             # Update displayed stats
             self.update_stats()
@@ -117,21 +115,21 @@ class MunicipalitySimulatorGUI(tk.Tk):
 
     def update_stats(self):
         # Update labels and entry fields with current stats
-        self.round_label.config(text=f"Round: {self.municipality.month}")
-        self.population_count_label.config(text=f"Population Count: {self.municipality.citizens.count}")
+        self.round_label.config(text=f"Round: {self.our_city.month}")
+        self.population_count_label.config(text=f"Population Count: {self.our_city.citizens.count}")
         self.immigration_entry.delete(0, tk.END)
-        self.immigration_entry.insert(0, str(self.municipality.immigration))
+        self.immigration_entry.insert(0, str(self.our_city.immigration))
         self.emigration_entry.delete(0, tk.END)
-        self.emigration_entry.insert(0, str(self.municipality.emigration))
-        self.balance_label.config(text=f"Balance: {self.municipality.balance}")
-        self.tax_rate_label.config(text=f"Tax Rate: {self.municipality.tax_rate}")
+        self.emigration_entry.insert(0, str(self.our_city.emigration))
+        self.balance_label.config(text=f"Balance: {self.our_city.balance}")
+        self.tax_rate_label.config(text=f"Tax Rate: {self.our_city.tax_rate}")
         self.tax_rate_entry.delete(0, tk.END)
-        self.tax_rate_entry.insert(0, str(self.municipality.tax_rate))
-        self.resources_label.config(text=f"Resources Available: {self.municipality.resources}")
-        self.event_label.config(text=f"Event: {self.municipality.current_event}")
+        self.tax_rate_entry.insert(0, str(self.our_city.tax_rate))
+        self.resources_label.config(text=f"Resources Available: {self.our_city.resources}")
+        self.event_label.config(text=f"Event: {self.our_city.current_event}")
 
         # Update building options and checkboxes
-        self.building_options = [building.name for building in self.municipality.buildings]
+        self.building_options = [building.name for building in self.our_city.buildings]
         self.building_dropdown['values'] = self.building_options
 
         for index, checkbox in enumerate(self.building_checkboxes):
@@ -144,7 +142,7 @@ class MunicipalitySimulatorGUI(tk.Tk):
             self.building_checkboxes.append(checkbox)
 
         # Update Population Satisfaction progress bar
-        self.population_satisfaction_bar["value"] = self.municipality.citizens.satisfaction
+        self.population_satisfaction_bar["value"] = self.our_city.citizens.satisfaction
         self.population_satisfaction_bar.update()
 
 
