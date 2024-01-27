@@ -14,6 +14,7 @@ import tkinter.messagebox
 
 from citizens import Citizens
 from building import Building, BasicBuilding, ElectiveBuilding
+from municipality import Municipality
 
 
 
@@ -83,10 +84,10 @@ class MunicipalitySimulatorGUI(tk.Tk):
         self.municipality = municipality
 
         self.title("Municipality Simulator")
-        self.geometry("1000x500")
+        self.geometry("1000x1000")
         
-        self.label = tk.Label(text="Welcome to XXXXX!", font=('Arial', 18))
-        self.abel.pack(padx=20, pady=20)
+        self.label = tk.Label(text=f'Welcome to {self.municipality.name}!', font=('Arial', 18))
+        self.label.pack(padx=20, pady=20)
 
         # Button for instructions and rules
         self.instructions_button = tk.Button(self, text="Instructions", command=self.show_instructions)
@@ -103,10 +104,10 @@ class MunicipalitySimulatorGUI(tk.Tk):
         self.population_count_label.grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
         self.immigration_label = tk.Label(self.stats_frame, text="Immigration:")
-        self.immigration_lable.grid(row=2, column=0, sticky="w", padx=5, pady=10)
+        self.immigration_label.grid(row=2, column=0, sticky="w", padx=5, pady=10)
 
-        self.emigration_label = tk.Label(self.stats_frame, text="Emigration:")
-        self.emigration_label.grid(row=3, column=0, sticky="w", padx=5, pady=10)
+        # self.emigration_label = tk.Label(self.stats_frame, text="Emigration:")
+        # self.emigration_label.grid(row=3, column=0, sticky="w", padx=5, pady=10)
 
         self.balance_label = tk.Label(self.stats_frame, text="Balance:")
         self.balance_label.grid(row=4, column=0, sticky="w", padx=5, pady=5)
@@ -170,6 +171,8 @@ class MunicipalitySimulatorGUI(tk.Tk):
 
         self.existing_buildings_listbox = tk.Listbox(self.progress_bar_frame, selectmode=tk.SINGLE)
         self.existing_buildings_listbox.grid(row=11, column=0, padx=5, pady=5)
+
+        self.existing_buildings = []
         
         # Combobox for Building Selection
         self.building_selection_label = tk.Label(self.progress_bar_frame, text="Select Buildings to Buy/Demolish:")
@@ -180,6 +183,18 @@ class MunicipalitySimulatorGUI(tk.Tk):
         self.building_combobox = ttk.Combobox(self.progress_bar_frame, textvariable=self.selected_building, 
                                               values=self.building_options)
         self.building_combobox.grid(row=13, column=0, padx=5, pady=5)
+
+        self.selected_building_checkbox = ttk.Checkbutton(self.progress_bar_frame, text="Buy/Demolish",
+                                                          variable=tk.BooleanVar(), onvalue=True, offvalue=False,
+                                                          command=self.update_building_checkboxes)
+        self.selected_building_checkbox.grid(row=14, column=0, padx=5, pady=5)
+
+        # Initialize building checkboxes
+        self.building_checkboxes = []
+        for building_option in self.building_options:
+            checkbox = ttk.Checkbutton(self.progress_bar_frame, text=building_option,
+                                       variable=tk.BooleanVar(), onvalue=True, offvalue=False)
+            self.building_checkboxes.append(checkbox)
 
         # Checkbox for the selected building
         self.selected_building_checkbox = ttk.Checkbutton(self.progress_bar_frame, text="Buy/Demolish",
@@ -196,9 +211,9 @@ class MunicipalitySimulatorGUI(tk.Tk):
     
             
         # Checkbox for immigration prevention
-        self.prevent_immigration_var = tk.BooleanVar()
-        self.prevent_immigration_checkbox = ttk.Checkbutton(self.stats_frame, text="Prevent Immigration", 
-                                                            variable=self.prevent_immigration_var, 
+        self.enable_immigration_var = tk.BooleanVar()
+        self.prevent_immigration_checkbox = ttk.Checkbutton(self.stats_frame, text="Enable Immigration", 
+                                                            variable=self.enable_immigration_var, 
                                                             command=self.update_stats)
         self.prevent_immigration_checkbox.grid(row=2, column=2, padx=5, pady=5)
 
@@ -224,6 +239,9 @@ class MunicipalitySimulatorGUI(tk.Tk):
             # Update municipality parameters from entry fields
             self.municipality.tax_rate = float(self.tax_rate_entry.get())
 
+            # Set the immigration_enabeld var
+            self.municipality.enable_immigration = self.enable_immigration_var.get()
+
             # Add selected buildings
             for index, checkbox in enumerate(self.building_checkboxes):
                 if checkbox.instate(['selected']):
@@ -231,7 +249,7 @@ class MunicipalitySimulatorGUI(tk.Tk):
                     self.municipality.buildings.append(selected_building)
 
             # Update immigration prevention status
-            self.municipality.prevent_immigration = self.prevent_immigration_var.get()
+            self.municipality.prevent_immigration = self.enable_immigration_var.get()
 
             # Run one simulation round
             self.municipality.simulate_one_round()
@@ -240,21 +258,31 @@ class MunicipalitySimulatorGUI(tk.Tk):
             self.update_stats()
         except ValueError:
             # Handle incorrect entry (non-integer or non-float input)
-            print("Invalid input. Please enter valid numbers for immigration, emigration, and tax rate.")
-
+            print("Invalid input. Please enter valid number for tax rate.")
+    
+    def update_existing_buildings_listbox(self):
+        self.existing_buildings_listbox.delete(0, tk.END)
+        for building in self.municipality.buildings:
+            if building.count > 0:
+                self.existing_buildings_listbox.insert(tk.END, f"{building.name} ({building.count})")
 
     def update_stats(self):
         # Update labels and entry fields with current stats
         self.round_label.config(text=f"Round: {self.municipality.month}")
         self.population_count_label.config(text=f"Population Count: {self.municipality.citizens.count}")
-        self.immigration_label.config(text=f"Immigration: {self.municipality.immigration}")
-        self.emigration_label.config(text=f"Emigration: {self.municipality.emigration}")
+        self.immigration_label.config(text=f"Immigration: {self.municipality.predict_migration()}")
+        # self.emigration_label.config(text=f"Emigration: {self.municipality.emigration}")
         self.balance_label.config(text=f"Balance: {self.municipality.balance}")
         self.tax_rate_label.config(text=f"Tax Rate: {self.municipality.tax_rate}")
         self.tax_rate_entry.delete(0, tk.END)
         self.tax_rate_entry.insert(0, str(self.municipality.tax_rate))
-        self.resources_label.config(text=f"Resources Available: {self.municipality.resources}")
-        self.event_label.config(text=f"Event: {self.municipality.current_event}")
+        # self.resources_label.config(text=f"Resources Available: {self.municipality.resources}")
+        if self.municipality.current_event:
+            self.event_label.config(text=f"Event: {self.municipality.current_event.name} ({self.municipality.current_event.description})")
+        else:
+            self.event_label.config(text=f"No current Event")
+        self.update_satisfaction_bars()
+        self.update_existing_buildings_listbox()
 
     # Update building options and checkboxes
     def update_building_checkboxes(self):
@@ -268,7 +296,7 @@ class MunicipalitySimulatorGUI(tk.Tk):
     def buy_selected_building(self):
         selected_building = self.selected_building.get()
         if selected_building:
-            self.building.build(selected_building)  
+            self.municipality.add_building(selected_building)
             # Update displayed stats after buying
             self.update_stats()
 
@@ -278,37 +306,31 @@ class MunicipalitySimulatorGUI(tk.Tk):
             self.municipality.demolish_building(selected_building)  # Call the demolish method in the Building class
             # Update displayed stats after demolishing
             self.update_stats()
-            
-            
-        # Update immigration checkbox
-        self.immigration_checkbox.config(state=tk.NORMAL)
-        
-        if self.municipality.prevent_immigration:
-            self.immigration_checkbox.deselect()
-            self.immigration_checkbox.config(state=tk.DISABLED)  
-            
-        else:
-            self.immigration_checkbox.config(state=tk.NORMAL)  
-                     
 
+        self.update_satisfaction_bars()
+        
+    
+    def update_satisfaction_bars(self):
         # Update Population Satisfaction progress bar
-        self.population_satisfaction_bar["value"] = self.municipality.citizens.satisfaction
+        self.population_satisfaction_bar["value"] = self.municipality.get_satisfaction()
         self.population_satisfaction_bar.update()
         
+
+        satisfaction_factors = self.municipality.get_satisfaction_factors()
         # Update Infrastructure progress bar
-        self.infrastructure_bar["value"] = self.municipality.citizens.infrastructure
+        self.infrastructure_bar["value"] = satisfaction_factors.infrastructure
         self.infrastructure_bar.update()
 
         # Update Safety progress bar
-        self.safety_bar["value"] = self.municipality.citizens.safety
+        self.safety_bar["value"] = satisfaction_factors.safety
         self.safety_bar.update()
 
         # Update Health progress bar
-        self.health_bar["value"] = self.municipality.citizens.health
+        self.health_bar["value"] = satisfaction_factors.health
         self.health_bar.update()
 
         # Update Entertainment progress bar
-        self.entertainment_bar["value"] = self.municipality.citizens.entertainment
+        self.entertainment_bar["value"] = satisfaction_factors.entertainment
         self.entertainment_bar.update()
 
 

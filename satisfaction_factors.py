@@ -15,10 +15,13 @@ class SatisfactionFactors:
         self.entertainment = entertainment
     
     def __mul__(self, other):
-        SatisfactionFactors(self.infrastructure * other.infrastructure,
+        return SatisfactionFactors(self.infrastructure * other.infrastructure,
                             self.safety * other.safety,
                             self.health * other.health,
                             self.entertainment * other.entertainment)
+    
+    def pow(self, power):
+        return SatisfactionFactors(self.infrastructure ** power, self.safety ** power, self.health ** power, self.entertainment ** power)
     
     def scale(self, scalar: float) -> object:
         SatisfactionFactors(
