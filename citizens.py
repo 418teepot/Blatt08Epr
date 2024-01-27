@@ -1,3 +1,5 @@
+__author__ = "6963879, Tverdohleb, 8291925, Hoffmann"
+
 from building import BasicBuilding
 from satisfaction_factors import SatisfactionFactors
 
