@@ -1,3 +1,5 @@
+__author__ = "6963879, Tverdohleb, 8291925, Hoffmann"
+
 from dataclasses import dataclass
 
 @dataclass
