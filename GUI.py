@@ -5,7 +5,7 @@ GUI for the Municipality simulation
 
 """
 
-__author__ = "6963879, Tverdohleb, "
+__author__ = "6963879, Tverdohleb, 8291925, Hoffmann"
 
 
 import tkinter as tk
